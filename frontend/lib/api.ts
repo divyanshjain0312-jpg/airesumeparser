@@ -112,3 +112,87 @@ export async function askQuestion(
   })
   return handleResponse<QueryResponse>(res)
 }
+
+// ---------- Skill-gap / JD analysis ----------
+
+export interface CourseRecommendation {
+  title: string
+  channel: string
+  video_id: string
+  url: string
+  thumbnail: string
+  published_at: string
+}
+
+export interface SkillGapItem {
+  skill: string
+  importance: 'required' | 'preferred' | 'nice-to-have'
+  courses: CourseRecommendation[]
+}
+
+export interface AnalyzeJDResponse {
+  session_id: string
+  job_title: string
+  resume_skills: string[]
+  jd_skills: string[]
+  matched_skills: string[]
+  missing_skills: SkillGapItem[]
+  match_score: number
+  ats_resume: string
+  ats_summary: string
+  llm_provider: string
+  youtube_enabled: boolean
+  processing_time_seconds: number
+  debug_logs: string[]
+}
+
+export async function analyzeJD(
+  sessionId: string,
+  jobDescription: string,
+  config: RAGConfig,
+  maxCoursesPerSkill = 3,
+): Promise<AnalyzeJDResponse> {
+  const res = await fetch(`${BASE_URL}/api/analyze-jd`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session_id: sessionId,
+      job_description: jobDescription,
+      config,
+      max_courses_per_skill: maxCoursesPerSkill,
+    }),
+  })
+  return handleResponse<AnalyzeJDResponse>(res)
+}
+
+// ---------- Session persistence (shared across pages) ----------
+// The skill-gap page runs on a separate route, so we persist the active
+// session id + config in sessionStorage to carry them across navigation.
+
+const SESSION_KEY = 'arp_session'
+
+export interface PersistedSession {
+  sessionId: string
+  filename: string
+  config: RAGConfig
+  processed: boolean
+}
+
+export function saveSession(data: PersistedSession): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(data))
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadSession(): PersistedSession | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_KEY)
+    return raw ? (JSON.parse(raw) as PersistedSession) : null
+  } catch {
+    return null
+  }
+}

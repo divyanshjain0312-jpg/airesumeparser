@@ -5,6 +5,7 @@ from fastapi import Depends
 
 from app.config import Settings, get_settings
 from app.services.rag_service import RAGService
+from app.services.skillgap_service import SkillGapService
 from app.vectordb.faiss_service import FAISSSessionManager, get_session_manager
 
 
@@ -17,3 +18,10 @@ def get_rag_service(
     manager: FAISSSessionManager = Depends(get_faiss_manager),
 ) -> RAGService:
     return RAGService(settings=settings, session_manager=manager)
+
+
+def get_skillgap_service(
+    settings: Settings = Depends(get_settings),
+    manager: FAISSSessionManager = Depends(get_faiss_manager),
+) -> SkillGapService:
+    return SkillGapService(settings=settings, session_manager=manager)

@@ -14,9 +14,11 @@ import { Sidebar, type SidebarConfig } from '@/components/sidebar'
 import { StatusCard } from '@/components/status-card'
 import { StatusBadge } from '@/components/status-badge'
 import { Accordion, SkeletonLoader, CodeBlock } from '@/components/accordion'
+import { Tabs } from '@/components/tabs'
 import {
   processResume,
   askQuestion,
+  saveSession,
   type ProcessResponse,
   type QueryResponse,
 } from '@/lib/api'
@@ -60,6 +62,20 @@ export default function Page() {
     setQueryResult(null)
     setProcessError(null)
     setQueryError(null)
+    // Persist so the Skill Gap page can reuse this session
+    saveSession({ sessionId: id, filename, config, processed: false })
+  }
+
+  const handleConfigChange = (newConfig: SidebarConfig) => {
+    setConfig(newConfig)
+    if (sessionId && uploadedFilename) {
+      saveSession({
+        sessionId,
+        filename: uploadedFilename,
+        config: newConfig,
+        processed: processResult !== null,
+      })
+    }
   }
 
   const handleProcess = async () => {
@@ -71,6 +87,10 @@ export default function Page() {
     try {
       const res = await processResume(sessionId, config)
       setProcessResult(res)
+      // Mark this session processed so the Skill Gap page can use it
+      if (uploadedFilename) {
+        saveSession({ sessionId, filename: uploadedFilename, config, processed: true })
+      }
     } catch (err: any) {
       setProcessError(err?.message || 'Processing failed')
     } finally {
@@ -268,7 +288,7 @@ export default function Page() {
     <div className="flex h-screen bg-background">
       <Sidebar
         config={config}
-        onConfigChange={setConfig}
+        onConfigChange={handleConfigChange}
         onProcess={handleProcess}
         onUploadSuccess={handleUploadSuccess}
         isProcessing={isProcessing}
@@ -278,6 +298,9 @@ export default function Page() {
 
       <main className="flex-1 ml-64 overflow-auto">
         <div className="p-8">
+          {/* Tab navigation */}
+          <Tabs />
+
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">

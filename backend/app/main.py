@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import health, upload, process, query
+from app.routers import health, upload, process, query, analyze_jd
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +35,7 @@ app.include_router(health.router)
 app.include_router(upload.router)
 app.include_router(process.router)
 app.include_router(query.router)
+app.include_router(analyze_jd.router)
 
 
 @app.on_event("startup")

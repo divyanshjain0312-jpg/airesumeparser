@@ -100,6 +100,46 @@ class QueryResponse(BaseModel):
     debug_logs: List[str]
 
 
+# ---------- Skill-Gap / JD Analysis ----------
+
+class AnalyzeJDRequest(BaseModel):
+    session_id: str
+    job_description: str = Field(..., min_length=20)
+    config: RAGConfig
+    max_courses_per_skill: int = Field(3, ge=1, le=5)
+
+
+class CourseRecommendation(BaseModel):
+    title: str
+    channel: str
+    video_id: str
+    url: str
+    thumbnail: str
+    published_at: str
+
+
+class SkillGapItem(BaseModel):
+    skill: str
+    importance: Literal["required", "preferred", "nice-to-have"]
+    courses: List[CourseRecommendation]
+
+
+class AnalyzeJDResponse(BaseModel):
+    session_id: str
+    job_title: str
+    resume_skills: List[str]
+    jd_skills: List[str]
+    matched_skills: List[str]
+    missing_skills: List[SkillGapItem]
+    match_score: float                 # 0-100 percentage of JD skills the resume covers
+    ats_resume: str                    # rewritten, ATS-optimized resume markdown
+    ats_summary: str                   # short summary of what changed
+    llm_provider: str
+    youtube_enabled: bool
+    processing_time_seconds: float
+    debug_logs: List[str]
+
+
 # ---------- Meta ----------
 
 class HealthResponse(BaseModel):

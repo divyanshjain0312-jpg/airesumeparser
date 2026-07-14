@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_default_model: str = "llama3.2"
 
+    # YouTube Data API v3 (for course recommendations)
+    youtube_api_key: str = ""
+
     # Model defaults
     gemini_model: str = "gemini-2.0-flash"
     openai_model: str = "gpt-4o-mini"
