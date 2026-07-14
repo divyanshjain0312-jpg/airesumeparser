@@ -1,0 +1,28 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
+
+# PDF
+pymupdf==1.25.1
+
+# Chunking / RAG
+langchain==0.3.14
+langchain-text-splitters==0.3.5
+langchain-experimental==0.3.4
+tiktoken==0.8.0
+nltk==3.9.1
+
+# Embeddings
+sentence-transformers==3.3.1
+torch==2.5.1
+
+# Vector DB
+faiss-cpu==1.9.0.post1
+numpy
+
+# LLMs
+google-generativeai==0.8.3
+httpx==0.28.1
