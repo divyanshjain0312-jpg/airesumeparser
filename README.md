@@ -1,31 +1,23 @@
-# AI Resume Parser — Full Stack RAG Application
+AI Resume Parser + Skill Gap Analyzer
 
-A full-stack AI application that parses resumes using a **RAG (Retrieval-Augmented Generation)** pipeline.
-Upload a PDF resume, configure the AI components, ask questions, and get intelligent answers powered by real embeddings and an LLM.
+A full-stack AI application with two features:
 
-```
-PDF Upload → Text Extraction → Chunking → Embeddings → FAISS → Retrieval → LLM → Answer
-```
 
----
+Resume Parser — Upload a PDF resume and query it using a RAG (Retrieval-Augmented Generation) pipeline.
+Skill Gap & Course Finder — Paste a job description to see which skills you're missing, get YouTube course recommendations to close the gap, and receive an ATS-optimized resume rewrite.
 
-## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
-| Backend | FastAPI, Python 3.11 |
-| PDF Parsing | PyMuPDF |
-| Chunking | LangChain (4 strategies) |
-| Embeddings | SentenceTransformers (HuggingFace) |
-| Vector Database | FAISS |
-| LLMs | Google Gemini / OpenAI / Anthropic Claude / Ollama (local) |
+Feature 1:  PDF → Extract → Chunk → Embed → FAISS → Retrieve → LLM → Answer
+Feature 2:  Resume + Job Description → Skill Gap → YouTube Courses + ATS Rewrite
 
----
 
-## Project Structure
+Tech Stack
 
-```
+LayerTechnologyFrontendNext.js 16, React 19, TypeScript, Tailwind CSSBackendFastAPI, Python 3.11PDF ParsingPyMuPDFChunkingLangChain (6 strategies)EmbeddingsSentenceTransformers (HuggingFace)Vector DatabaseFAISSLLMsGoogle Gemini / OpenAI / Anthropic Claude / Ollama (local)Course DataYouTube Data API v3
+
+
+Project Structure
+
 airesparser/
 │
 ├── backend/
@@ -34,10 +26,10 @@ airesparser/
 │   │   ├── embeddings/        # SentenceTransformer embedder
 │   │   ├── factories/         # Dynamic component selection
 │   │   ├── llms/              # Gemini, OpenAI, Claude, Ollama
-│   │   ├── models/            # Pydantic request/response schemas
-│   │   ├── routers/           # API endpoints
-│   │   ├── services/          # RAG orchestration logic
-│   │   ├── utils/             # PDF extractor, debug logger
+│   │   ├── models/            # Pydantic schemas
+│   │   ├── routers/           # API endpoints (upload, process, query, analyze-jd)
+│   │   ├── services/          # RAG + skill-gap + youtube logic
+│   │   ├── utils/             # PDF extractor, logger, skill extractor
 │   │   ├── vectordb/          # FAISS session manager
 │   │   ├── config.py          # Settings from .env
 │   │   └── main.py            # FastAPI app entry point
@@ -45,456 +37,294 @@ airesparser/
 │   ├── vector_db/             # FAISS indexes (auto-created)
 │   ├── .env                   # Your secrets (never commit this)
 │   ├── .env.example           # Template for .env
-│   ├── requirements.txt       # Python dependencies
-│   └── README.md
+│   └── requirements.txt       # Python dependencies
 │
 └── frontend/
     ├── app/
     │   ├── globals.css
     │   ├── layout.tsx
-    │   └── page.tsx           # Main page (replaced)
+    │   ├── page.tsx           # Resume Parser page
+    │   └── skill-gap/
+    │       └── page.tsx       # Skill Gap & Courses page
     ├── components/
     │   ├── accordion.tsx
-    │   ├── sidebar.tsx        # Sidebar with config (replaced)
+    │   ├── sidebar.tsx        # Config sidebar
     │   ├── status-badge.tsx
-    │   └── status-card.tsx
+    │   ├── status-card.tsx
+    │   └── tabs.tsx           # Tab navigation
     ├── lib/
-    │   ├── api.ts             # Typed API client (new)
+    │   ├── api.ts             # Typed API client
     │   └── utils.ts
     ├── .env.local             # Frontend env (API URL)
     └── package.json
-```
 
----
 
-## Prerequisites
+Prerequisites
 
-Install these once on your machine before anything else.
+Install these once before anything else.
 
-### 1. Python 3.11
-> ⚠️ Must be Python 3.11. Python 3.13 has a known incompatibility with pydantic-core on Windows.
+1. Python 3.11
 
-Download from: https://www.python.org/downloads/release/python-31110/
-- Choose **Windows installer (64-bit)**
-- ✅ Check **"Add python.exe to PATH"** during install
 
-Verify:
-```cmd
-py -3.11 --version
-```
-Expected: `Python 3.11.x`
+⚠️ Must be Python 3.11. Python 3.13 has a known incompatibility with pydantic-core on Windows.
 
----
 
-### 2. Node.js 18+
-Download from: https://nodejs.org
-- Choose the **LTS** version
+
+Download: https://www.python.org/downloads/release/python-31110/
+
+
+Choose Windows installer (64-bit)
+✅ Check "Add python.exe to PATH" during install
+
 
 Verify:
-```cmd
-node --version
-```
-Expected: `v18.x.x` or higher
 
----
+cmdpy -3.11 --version
 
-### 3. pnpm
-```cmd
-npm install -g pnpm
-```
+2. Node.js 18+
+
+Download the LTS version: https://nodejs.org
 
 Verify:
-```cmd
-pnpm --version
-```
 
----
+cmdnode --version
 
-### 4. An LLM API Key (choose one)
+3. pnpm
 
-| Provider | Get key from | Free tier |
-|---|---|---|
-| Google Gemini | https://aistudio.google.com/apikey | Yes (limited) |
-| OpenAI | https://platform.openai.com/api-keys | Paid |
-| Anthropic Claude | https://console.anthropic.com | Paid |
-| Ollama (local) | https://ollama.com/download | Free, no key needed |
+cmdnpm install -g pnpm
 
-> **Recommendation for beginners:** Use **Ollama** — it's completely free, runs locally, no API key needed. Setup guide is below.
+4. API Keys
 
----
+ProviderGet key fromNeeded forGoogle Geminihttps://aistudio.google.com/apikeyLLM (recommended)OpenAIhttps://platform.openai.com/api-keysLLM (optional)Anthropic Claudehttps://console.anthropic.comLLM (optional)Ollama (local)https://ollama.com/downloadFree local LLM (optional)YouTube Data APIhttps://console.cloud.google.comCourse recommendations
 
-## Setup — Backend
 
-### Step 1 — Open terminal and go to the backend folder
+For beginners: use Ollama (free local LLM, no key) + a YouTube API key (free, for courses).
 
-```cmd
-cd C:\Projects\airesparser\backend
-```
 
-### Step 2 — Create a Python 3.11 virtual environment
 
-```cmd
-py -3.11 -m venv .venv
-```
 
-### Step 3 — Activate the virtual environment
+Setup — Backend
 
-**Windows (Command Prompt):**
-```cmd
-.venv\Scripts\activate.bat
-```
+Step 1 — Go to the backend folder
 
-**Windows (PowerShell):**
-```powershell
-.venv\Scripts\Activate.ps1
-```
+cmdcd C:\Projects\airesparser\backend
 
-**Mac/Linux:**
-```bash
-source .venv/bin/activate
-```
+Step 2 — Create a Python 3.11 virtual environment
 
-You should see `(.venv)` at the start of your prompt. Always activate before running any backend command.
+cmdpy -3.11 -m venv .venv
 
-### Step 4 — Install Python dependencies
+Step 3 — Activate it
 
-```cmd
-pip install -r requirements.txt
-```
+Windows (Command Prompt):
 
-> ⏳ This takes 3–10 minutes. It downloads PyTorch and SentenceTransformers which are large packages (~1.5 GB total). This is a one-time step.
+cmd.venv\Scripts\activate.bat
 
-### Step 5 — Create your environment file
+Windows (PowerShell):
 
-**Windows:**
-```cmd
-copy .env.example .env
-```
+powershell.venv\Scripts\Activate.ps1
 
-**Mac/Linux:**
-```bash
-cp .env.example .env
-```
+Mac/Linux:
 
-### Step 6 — Add your API key to `.env`
+bashsource .venv/bin/activate
 
-Open `backend/.env` in any text editor (Notepad, VS Code, etc.) and fill in your key:
+You should see (.venv) at the start of your prompt. Always activate before running backend commands.
 
-**If using Gemini:**
-```env
-GEMINI_API_KEY=AIzaSy...your-actual-key-here
+Step 4 — Install dependencies
+
+cmdpip install -r requirements.txt
+
+
+⏳ Takes 3–10 minutes (downloads PyTorch + SentenceTransformers, ~1.5 GB). One-time step.
+
+
+
+Step 5 — Create your environment file
+
+Windows:
+
+cmdcopy .env.example .env
+
+Mac/Linux:
+
+bashcp .env.example .env
+
+Step 6 — Add your keys to .env
+
+Open backend/.env and fill in what you'll use:
+
+env# LLM (pick at least one)
+GEMINI_API_KEY=AIzaSy...your-key
 GEMINI_MODEL=gemini-2.0-flash
-```
 
-**If using OpenAI:**
-```env
-OPENAI_API_KEY=sk-...your-actual-key-here
-```
+# YouTube course recommendations (optional but recommended)
+YOUTUBE_API_KEY=AIza...your-youtube-key
 
-**If using Anthropic Claude:**
-```env
-ANTHROPIC_API_KEY=sk-ant-...your-actual-key-here
-```
-
-**If using Ollama (no key needed):**
-```env
+# Ollama (if using local LLM — no key needed)
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_DEFAULT_MODEL=llama3.2
-```
 
-Leave all other lines as they are.
+Step 7 — Start the backend
 
-### Step 7 — Start the backend server
+cmduvicorn app.main:app --reload --port 8000
 
-```cmd
-uvicorn app.main:app --reload --port 8000
-```
+✅ Success:
 
-✅ **Success looks like this:**
-```
-INFO:     Will watch for changes in these directories: [...]
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
-```
 
-Verify it works by opening: **http://localhost:8000/docs**
-You should see the Swagger UI with 4 endpoints listed.
+Verify at http://localhost:8000/docs — you should see /api/upload, /api/process, /api/query, and /api/analyze-jd.
 
-> Keep this terminal open and running. Do not close it.
 
----
+Keep this terminal running.
 
-## Setup — Frontend
 
-Open a **second terminal** (leave the backend terminal running).
 
-### Step 1 — Go to the frontend folder
 
-```cmd
-cd C:\Projects\airesparser\frontend
-```
+Setup — Frontend
 
-### Step 2 — Verify the environment file exists
+Open a second terminal (leave the backend running).
 
-Check that `.env.local` exists and contains:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+Step 1 — Go to the frontend folder
 
-If the file is missing, create it with that content.
+cmdcd C:\Projects\airesparser\frontend
 
-### Step 3 — Install dependencies
+Step 2 — Verify .env.local
 
-```cmd
-pnpm install
-```
+It should contain:
 
-> ⏳ This takes 1–2 minutes. One-time step.
+envNEXT_PUBLIC_API_URL=http://localhost:8000
 
-### Step 4 — Start the frontend
+Step 3 — Install dependencies
 
-```cmd
-pnpm dev
-```
+cmdpnpm install
 
-✅ **Success looks like this:**
-```
+Step 4 — Start the frontend
+
+cmdpnpm dev
+
+✅ Success:
+
 ▲ Next.js 16.2.6
 - Local:   http://localhost:3000
-- Ready in 2.1s
-```
 
-Open **http://localhost:3000** in your browser.
+Open http://localhost:3000.
 
----
 
-## Ollama Setup (Free, Local LLM)
+Getting a YouTube API Key
 
-Use this if you don't want to use paid API keys.
+Needed for course recommendations on the Skill Gap page.
 
-### Step 1 — Install Ollama
-Download from: **https://ollama.com/download** → click **Download for Windows**
 
-Run `OllamaSetup.exe`. It installs automatically as a background service.
+Go to https://console.cloud.google.com
+Create a project (or select an existing one)
+In the search bar, find "YouTube Data API v3" → click Enable
+Go to APIs & Services → Credentials → Create Credentials → API key
+Copy the key into backend/.env as YOUTUBE_API_KEY=...
+Restart the backend
 
-### Step 2 — Open a new terminal and pull the model
 
-```cmd
-ollama pull llama3.2
-```
 
-> ⏳ Downloads ~2 GB. Wait for it to complete fully.
+Free quota: 10,000 units/day (~100 searches). Each missing skill uses 1 cached search. Without a key, skill gaps still show — just without videos.
 
-### Step 3 — Test it works
 
-```cmd
-ollama run llama3.2 "say hello"
-```
 
-You should get a short reply. Press `Ctrl+C` to exit.
+Using the App
 
-### Step 4 — Verify backend `.env` has Ollama settings
+Feature 1 — Resume Parser (homepage)
 
-```env
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_DEFAULT_MODEL=llama3.2
-```
 
-### Step 5 — Use Ollama in the app
+Upload a PDF resume — click the upload area in the sidebar, pick a PDF. Wait for the green checkmark.
+Configure RAG settings (or leave defaults):
+SettingDefaultPurposeChunking StrategyRecursive CharacterHow text is splitEmbedding Modelall-MiniLM-L6-v2Text → vectorsVector DatabaseFAISSStores/searches vectorsLLMGeminiGenerates answersChunk Size1000Max chars per chunkChunk Overlap200Overlap between chunksTop K5Chunks retrieved
 
-In the frontend sidebar, change the **LLM dropdown** to `Llama (via Ollama)` before clicking Ask.
 
-> 💡 If responses are slow, use the smaller model instead:
-> ```cmd
-> ollama pull llama3.2:1b
-> ```
-> Then set `OLLAMA_DEFAULT_MODEL=llama3.2:1b` in `.env` and restart the backend.
+Click "Process Resume" — first run downloads the embedding model (~90 MB, 30–60s). Later runs take 2–5s.
+When done, the status cards show Complete and the accordions fill with real data.
+Ask a question in the "Ask the Resume" box (e.g. "What languages does this candidate know?") and click Ask.
 
----
 
-## Using the Application
+Feature 2 — Skill Gap & Courses
 
-### Full workflow step by step:
 
-**1. Upload a resume**
-- Click the upload area in the left sidebar
-- Select any PDF resume file
-- Wait for the green checkmark ✅ and filename to appear
+Process a resume on the homepage first (Feature 1).
+Click the Skill Gap & Courses tab at the top.
+Paste a full job description into the box.
+Click Analyze Gap.
+You'll see:
 
-**2. Configure RAG settings** (or leave defaults)
+A match score ring (% of JD skills your resume covers)
+Skills You Have (green chips)
+Skills to Learn — each expands to show YouTube courses
+An ATS-Optimized Resume rewrite (with a Copy button)
+Debug logs with timings
 
-| Setting | Default | What it does |
-|---|---|---|
-| Chunking Strategy | Recursive Character | How the text is split into chunks |
-| Embedding Model | all-MiniLM-L6-v2 | Converts text to vectors |
-| Vector Database | FAISS | Stores and searches vectors |
-| LLM | Gemini | Generates the final answer |
-| Chunk Size | 1000 | Max characters per chunk |
-| Chunk Overlap | 200 | Overlap between chunks |
-| Top K | 5 | How many chunks to retrieve |
 
-**3. Click "Process Resume"**
-- Button shows a spinner while processing
-- First run downloads the embedding model (~90 MB) — takes 30–60 seconds
-- Subsequent runs take 2–5 seconds
-- When done, all 4 status cards show **Complete**
 
-**4. Ask a question**
-- Type in the "Ask the Resume" box
-- Example questions:
-  - `Summarize this candidate's experience`
-  - `What programming languages does this candidate know?`
-  - `What is their highest level of education?`
-  - `How many years of experience do they have?`
-- Click **Ask**
 
-**5. View results**
-- Scroll down to **Analysis Results**
-- Open each accordion to see:
-  - **Extracted Text Preview** — raw text from the PDF
-  - **Chunk Preview** — how the text was split
-  - **Retrieved Chunks** — the most relevant pieces for your question
-  - **Final Prompt Sent to LLM** — exact prompt constructed
-  - **LLM Answer** — the AI's response
-  - **Source Chunks** — chunks with similarity scores
-  - **Debug Logs** — full pipeline timeline with timings
 
----
 
-## API Endpoints
+The Skill Gap page reuses the resume and settings from the homepage. The LLM you pick in the sidebar carries over automatically.
 
-Base URL: `http://localhost:8000`
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/health` | Check if backend is running |
-| GET | `/docs` | Swagger UI (interactive API docs) |
-| POST | `/api/upload` | Upload a PDF resume |
-| POST | `/api/process` | Run the RAG ingestion pipeline |
-| POST | `/api/query` | Ask a question about the resume |
 
----
 
-## Supported Components
+API Endpoints
 
-### Chunking Strategies
-| Frontend name | Strategy |
-|---|---|
-| Recursive Character | Splits on `\n\n`, `\n`, `.`, ` ` — best general purpose |
-| Fixed Size | Exact character count chunks |
-| Token-based | Splits by token count (uses tiktoken) |
-| Sentence-based | Splits on sentence boundaries (uses NLTK) |
-| Semantic | Groups sentences by embedding similarity |
-| Document Based | Splits on paragraph/section boundaries |
+Base URL: http://localhost:8000
 
-### Embedding Models
-| Frontend name | HuggingFace model | Notes |
-|---|---|---|
-| all-MiniLM-L6-v2 | sentence-transformers/all-MiniLM-L6-v2 | Best default, fast |
-| BGE Small | BAAI/bge-small-en-v1.5 | Good retrieval quality |
-| BGE Base | BAAI/bge-base-en-v1.5 | Better quality, slower |
-| E5 Small | intfloat/e5-small-v2 | Good for Q&A tasks |
-| Instructor | hkunlp/instructor-base | Instruction-tuned |
+MethodEndpointPurposeGET/healthCheck backend is runningGET/docsSwagger UIPOST/api/uploadUpload a PDF resumePOST/api/processRun PDF→chunk→embed→FAISSPOST/api/queryAsk a question about the resumePOST/api/analyze-jdSkill gap + courses + ATS rewrite
 
-### LLM Providers
-| Frontend name | Provider | Requires |
-|---|---|---|
-| Gemini | Google Gemini API | `GEMINI_API_KEY` in `.env` |
-| OpenAI | OpenAI GPT | `OPENAI_API_KEY` in `.env` |
-| Claude | Anthropic Claude | `ANTHROPIC_API_KEY` in `.env` |
-| Ollama (local) | Ollama | Ollama installed locally |
-| Llama (via Ollama) | Meta Llama via Ollama | Ollama + `ollama pull llama3.2` |
-| Mistral (via Ollama) | Mistral via Ollama | Ollama + `ollama pull mistral` |
 
----
+Supported Components
 
-## How to Restart the Project
+Chunking Strategies
 
-Every time you want to run the project again:
+Recursive Character, Fixed Size, Token-based, Sentence-based, Semantic, Document Based
 
-**Terminal 1 — Backend:**
-```cmd
-cd C:\Projects\airesparser\backend
+Embedding Models
+
+NameHuggingFace modelall-MiniLM-L6-v2sentence-transformers/all-MiniLM-L6-v2BGE SmallBAAI/bge-small-en-v1.5BGE BaseBAAI/bge-base-en-v1.5E5 Smallintfloat/e5-small-v2Instructorhkunlp/instructor-base
+
+LLM Providers
+
+NameRequiresGeminiGEMINI_API_KEYOpenAIOPENAI_API_KEYClaudeANTHROPIC_API_KEYOllama / Llama / MistralOllama installed locally
+
+
+How to Restart the Project
+
+Terminal 1 — Backend:
+
+cmdcd C:\Projects\airesparser\backend
 .venv\Scripts\activate.bat
 uvicorn app.main:app --reload --port 8000
-```
 
-**Terminal 2 — Frontend:**
-```cmd
-cd C:\Projects\airesparser\frontend
+Terminal 2 — Frontend:
+
+cmdcd C:\Projects\airesparser\frontend
 pnpm dev
-```
 
-Then open **http://localhost:3000**.
+Then open http://localhost:3000. No need to reinstall dependencies.
 
-> You do NOT need to reinstall dependencies again. Just activate the venv and start both servers.
 
----
 
-## Troubleshooting
 
-### Backend won't start
+Important Notes
 
-| Error | Fix |
-|---|---|
-| `DLL load failed` / pydantic error | You're using Python 3.13. Delete `.venv`, create it with `py -3.11 -m venv .venv` |
-| `ModuleNotFoundError` | Virtual environment not activated. Run `.venv\Scripts\activate.bat` first |
-| `Address already in use` | Port 8000 is taken. Kill the old process or use `--port 8001` |
 
-### API Errors
+.env changes need a manual restart — uvicorn --reload only watches .py files. Press Ctrl+C and restart after editing .env.
+First Process Resume is slow — the embedding model downloads ~90 MB on first run, then it's cached.
+Sessions are in-memory — restarting the backend clears them. Re-process before querying/analyzing.
+Config carries between tabs — the Skill Gap page reuses the homepage's session and LLM choice. If you change the LLM after processing, re-process so the change is saved.
+ATS rewrites are truthful — the prompt forbids inventing skills you don't have; it only rephrases genuine experience with better keywords.
+FAISS only — the sidebar shows a Vector Database dropdown, but the backend always uses FAISS by design.
 
-| Error | Fix |
-|---|---|
-| `404 This model is no longer available` | Change `GEMINI_MODEL=gemini-2.0-flash` in `.env`, restart uvicorn |
-| `429 Quota exceeded` | Free tier limit hit. Get a new API key, enable billing, or switch to Ollama |
-| `GEMINI_API_KEY is not configured` | `.env` file missing or not loaded. Make sure `.env` exists in `backend/` folder |
-| `No processed session found` | You need to click **Process Resume** before clicking **Ask** |
-| `Embedding dimension mismatch` | You changed the embedding model after processing. Re-click Process Resume |
 
-### Frontend errors
 
-| Error | Fix |
-|---|---|
-| CORS error in browser console | Backend isn't running on port 8000 |
-| `Cannot find module '@/lib/utils'` | Create `frontend/lib/utils.ts` — see below |
-| Blank page | Check browser console (F12) for errors |
+Environment Variables Reference
 
-**`frontend/lib/utils.ts`** (create if missing):
-```ts
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+Full backend/.env:
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-```
-
-### Ollama errors
-
-| Error | Fix |
-|---|---|
-| `connection refused` | Ollama isn't running. Launch it from Start Menu |
-| `model not found` | Run `ollama pull llama3.2` in terminal |
-| Very slow responses | Normal on CPU. Try `ollama pull llama3.2:1b` for a faster smaller model |
-
----
-
-## Important Notes
-
-- **`.env` changes require a manual restart** — uvicorn `--reload` only watches `.py` files, not `.env`. Always press `Ctrl+C` and restart after editing `.env`.
-- **First Process Resume is slow** — the embedding model downloads ~90 MB on first run. Subsequent runs are fast because the model is cached.
-- **Session is in-memory** — if you restart the backend, you need to click **Process Resume** again before asking questions.
-- **One session per upload** — uploading a new PDF automatically creates a new session and clears previous results.
-- **FAISS only** — even though the sidebar shows a Vector Database dropdown, the backend always uses FAISS regardless of selection (by design).
-
----
-
-## Environment Variables Reference
-
-Full list of variables for `backend/.env`:
-
-```env
-# === LLM API Keys (fill the ones you'll use) ===
+env# === LLM API Keys (fill the ones you'll use) ===
 GEMINI_API_KEY=your_gemini_key_here
 OPENAI_API_KEY=your_openai_key_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
@@ -508,10 +338,16 @@ ANTHROPIC_MODEL=claude-3-5-haiku-latest
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_DEFAULT_MODEL=llama3.2
 
-# === Paths (do not change unless you move folders) ===
+# === YouTube Data API (for course recommendations) ===
+YOUTUBE_API_KEY=your_youtube_key_here
+
+# === Paths (don't change unless you move folders) ===
 UPLOAD_DIR=./uploads
 VECTOR_DB_DIR=./vector_db
 
 # === CORS (add your frontend URL if deploying) ===
 CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-```
+
+Full frontend/.env.local:
+
+envNEXT_PUBLIC_API_URL=http://localhost:8000
